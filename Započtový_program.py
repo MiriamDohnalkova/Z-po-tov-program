@@ -38,6 +38,16 @@ def square (r, c):
         B = 8
     return R, C, B
 
+import random
+def random_list (start, end): #vrací seznam hodnot od start do end (oba včetně) v náhodném pořadí
+    l = [None]*(end - start + 1)
+    for index in range (len(l)):
+        n = random.randint(start, end)
+        while n in l:
+            n = random.randint(start, end)
+        l[index] = n
+    return l
+
 class Grid:
     def __init__ (self, grid):
         self.grid = grid
@@ -51,7 +61,7 @@ class Grid:
     
     
 size = 9
-REPEAT_CONS = 5000
+REPEAT_CONS = 10000
 g = [0]*size
 for i in range (size):
     g[i] = [-1]*size 
@@ -66,71 +76,82 @@ class TimeError(Exception):
 
 while True:
     try:
-        values_rows = [0]*size      #tabulka, kde pro každý řádek je inverzní pole označující hodnoty, které se v řádku ještě nevyskytují
-        for j in range (size):      
-            values_rows[j] = [True]*(size + 1)      #index = vhodná hodnota 
+        values_grid = [[0]*(size) for _ in range (size)]        #seznam seznamů pro každé pole v Sudoku tabulce. Hodnota je seznam hodnot (True lze použít pro dané pole, False již nelze použít). Samotné hodnoty jsou hodnoty 1-9, proto jous seznamy velké size+1 (první prvek nepoužíváme).
+        for i in range (size):
+            for j in range (size):
+                values_grid[i][j] = [True]*(size + 1)
+        
+        box_indeces =[[(0,0), (1,0), (2,0), (0,1), (1,1), (2, 1), (0,2), (1,2), (2,2)],[(0,3), (1,3), (2,3), (0,4), (1,4), (2,4), (0,5), (1,5), (2,5)],[(0,6), (1,6), (2,6), (0,7), (1,7), (2,7), (0,8), (1,8), (2,8)],     #pomocné seznamy pro úpravu možných hodnot v values_grid
+                      [(3,0), (4,0), (5,0), (3,1), (4,1), (5, 1), (3,2), (4,2), (5,2)],[(3,3), (4,3), (5,3), (3,4), (4,4), (5,4), (3,5), (4,5), (5,5)],[(3,6), (4,6), (5,6), (3,7), (4,7), (5,7), (3,8), (4,8), (5,8)],
+                      [(6,0), (7,0), (8,0), (6,1), (7,1), (8, 1), (6,2), (7,2), (8,2)],[(6,3), (7,3), (8,3), (6,4), (7,4), (8,4), (6,5), (7,5), (8,5)],[(6,6), (7,6), (8,6), (6,7), (7,7), (8,7), (6,8), (7,8), (8,8)]]
 
-        values_cols = [0]*size
-        for k in range (size):
-            values_cols[k] = [True]*(size + 1)
-
-        values_boxes = [0]*size     #pro čtverce, kde jsou seřazeny - levý horní roh až pravý horní roh, prostřední pás zleva do prava a stejně i dolní pás
-        for l in range (size):
-            values_boxes[l] = [True]*(size + 1)
-
-        import random
-        def random_list (start, end): #vrací seznam hodnot od start do end (oba včetně) v náhodném pořadí
-            l = [None]*(end - start + 1)
-            for index in range (len(l)):
-                n = random.randint(start, end)
-                while n in l:
-                    n = random.randint(start, end)
-                l[index] = n
-            return l
-
-        from collections import deque
-        list_rows = random_list(0,size-1).copy()
-        list_cols = random_list(0,size-1).copy()
-        a = [(i,j) for i in list_rows for j in list_cols]
-        empty_spaces = deque(a)
+        empty_spaces = [[[True, size] for x in range(size)] for y in range(size)]     #tabulka, kde pro každé pole je udáno, zda je prázdné (True), či plné (False) a kolik existuje korektních hodnot pro toto pole   
+        num_of_empty_spaces = size*size
 
         values = random_list(1,9).copy()
 
         count = 0                      
         repeat = 0
-        def solve (wanted_sol):       #vrátí True, pokud našla tolik řešení, kolik bylo požadováno. Proměnná g potom je jedním z řešeních. Pokud neexistuje funkce skončí a vypíše False, proměnná g je původní tabulka.    #wanted_sol - kolik řešení chci, aby funkce určila 
-            global g, values_rows, values_cols, values_boxes, empty_spaces, count, repeat
+        def solve (wanted_sol):       #vrátí True, pokud našla tolik řešení, kolik bylo požadováno. Proměnná g potom je jedním z řešeních. Pokud neexistuje funkce skončí a vypíše False, proměnná g je původní tabulka. Pokud se funkce zavolá na již plně vyplněnou tabulky, potom vrací False.    #wanted_sol - kolik řešení chci, aby funkce určila 
+            global g, values_grid, empty_spaces, num_of_empty_spaces, count, repeat
             repeat += 1
             if repeat > REPEAT_CONS:
                 raise TimeError
-            if len(empty_spaces) == 0:
-                return
-            r, c = empty_spaces.popleft()
-            empty_spaces.appendleft((r,c))
+            min_options = 10
+            r,c = -1, -1
+            for i in range(size):
+                for j in range(size):
+                    if empty_spaces[i][j][0] and empty_spaces[i][j][1] < min_options:
+                        min_options = empty_spaces[i][j][1]
+                        r, c = i, j
+
+            _, z, b = square (r,c)
             for value in values:
-                _, z, b = square (r,c)
-                if values_rows[r][value] and values_cols[c][value] and values_boxes[b][value]:
+                if values_grid[r][c][value]:        #ověříme, že vložení hodnoty do tohoto pole je korektní
+                    hold_values_grid = [[0]*(size) for _ in range (size)]
+                    for i in range (size):
+                        for j in range (size):
+                            hold_values_grid[i][j] = values_grid[i][j].copy()
+                    hold_empty_spaces = [[0]*(size) for _ in range(size)]
+                    for i in range (size):
+                        for j in range (size):
+                            hold_empty_spaces[i][j] = empty_spaces[i][j].copy()
+
                     g.grid[r][c] = value
-                    values_rows[r][value] = False
-                    values_cols[c][value] = False
-                    values_boxes[b][value] = False
-                    empty_spaces.popleft()
-                    if len(empty_spaces) == 0:
+                    empty_spaces[r][c][0] = False
+                    num_of_empty_spaces -= 1
+                    for col in range(size):     #aktualizujeme seznamy hodnot
+                        if values_grid[r][col][value]:
+                            values_grid[r][col][value] = False
+                            empty_spaces[r][col][1] -= 1
+                    for row in range(size):
+                        if values_grid[row][c][value]:
+                            values_grid[row][c][value] = False
+                            empty_spaces[row][c][1] -= 1
+                    for i,j in box_indeces[b]:
+                        if values_grid[i][j][value]:
+                            values_grid[i][j][value] = False
+                            empty_spaces[i][j][1] -= 1
+
+                    if num_of_empty_spaces == 0:        #pokud je tabulka plná
                         count += 1
                         if wanted_sol == count:
                             return True
+                        g.grid[r][c] = -1
+                        values_grid = hold_values_grid
+                        empty_spaces = hold_empty_spaces
+                        num_of_empty_spaces += 1
                     else:
                         if solve(wanted_sol):
                             return True
-                    g.grid[r][c] = -1
-                    values_rows[r][value] = True
-                    values_cols[c][value] = True
-                    values_boxes[b][value] = True
-                    empty_spaces.appendleft((r,c))
+                        g.grid[r][c] = -1
+                        values_grid = hold_values_grid
+                        empty_spaces = hold_empty_spaces
+                        num_of_empty_spaces += 1
             return False
-
+        
         def generate():
-            global g, count, values_rows, values_cols, values_boxes, empty_spaces
+            global g, count, values_grid, empty_spaces, num_of_empty_spaces
             solve(1)
             count = 0
             solution = [[0]*size for _ in range (size)]
@@ -144,29 +165,78 @@ while True:
                 col = random.randint(0, size-1)
                 if g.grid[row][col] > 0:
                     hold = g.grid[row][col]
-                    hold_grid = [[0]*size for _ in range (size)]
-                    for i in range (size):
-                        for j in range (size):
-                            hold_grid [i][j] = g.grid[i][j]
-                    hold_empty_spaces = (list(empty_spaces)).copy()
-                    hold_values_rows = values_rows.copy()
-                    hold_values_cols = values_cols.copy()
-                    hold_values_boxes = values_boxes.copy()
+                    hold_grid = [row.copy() for row in g.grid]
+                    hold_values_grid = [[values_grid[i][j].copy() for j in range(size)] for i in range (size)]
+                    hold_empty_spaces = [[empty_spaces[i][j].copy() for j in range(size)] for i in range (size)]
+
                     g.grid[row][col] = -1
-                    empty_spaces.appendleft((row, col))
+                    empty_spaces[row][col][0] = True 
+                    num_of_empty_spaces += 1  
                     _, xz, box = square(row, col)
-                    values_rows[row][hold] = True
-                    values_cols[col][hold] = True
-                    values_boxes[box][hold] = True
+                    for c in range (size):      #prozkoumání všech možností v řádku 
+                        h = 0
+                        _, xz, b = square(row, c)
+                        for c1 in range (size):
+                            if g.grid[row][c1] == hold:
+                                h = 1
+                                break
+                        for r1 in range(size):
+                            if g.grid[r1][c] == hold:
+                                h = 1
+                                break
+                        for r1, c1 in box_indeces[b]:
+                            if g.grid[r1][c1] == hold:
+                                h = 1
+                                break
+                        if h == 0:
+                            values_grid[row][c][hold] = True
+                            empty_spaces[row][c][1] += 1
+                    for r in range (size):      #prozkoumání všech možností ve sloupci 
+                        h = 0
+                        _, xz, b = square(r, col)
+                        for c1 in range (size):
+                            if g.grid[r][c1] == hold:
+                                h = 1
+                                break
+                        for r1 in range(size):
+                            if g.grid[r1][col] == hold:
+                                h = 1
+                                break
+                        for r1, c1 in box_indeces[b]:
+                            if g.grid[r1][c1] == hold:
+                                h = 1
+                                break
+                        if h == 0:
+                            values_grid[r][col][hold] = True
+                            empty_spaces[r][col][1] += 1
+                    for r, c in box_indeces[box]:      #prozkoumání všech možností ve čtverci
+                        h = 0
+                        _, xz, b = square(r, c)
+                        for c1 in range (size):
+                            if g.grid[r][c1] == hold:
+                                h = 1
+                                break
+                        for r1 in range(size):
+                            if g.grid[r1][c] == hold:
+                                h = 1
+                                break
+                        for r1, c1 in box_indeces[b]:
+                            if g.grid[r1][c1] == hold:
+                                h = 1
+                                break
+                        if h == 0:
+                            values_grid[r][c][hold] = True
+                            empty_spaces[r][c][1] += 1
+
                     if not solve(2):
                         emptied += 1
                     else:
                         g.grid = hold_grid
-                        empty_spaces = deque(hold_empty_spaces)
-                        values_rows = hold_values_rows
-                        values_cols = hold_values_cols
-                        values_boxes = hold_values_boxes
+                        empty_spaces = hold_empty_spaces
+                        values_grid = hold_values_grid
+                        num_of_empty_spaces = emptied
                     count = 0
+        
             return(solution)
 
         sol = generate()
@@ -201,7 +271,7 @@ def draw_grid(grid_d):
             for j in range (len(grid_d)):
                 num = grid_d[i][j]
                 if num > 0:
-                    text_num = font2.render(str(num), True, (0, 0, 255))
+                    text_num = font2.render(str(num), True, (0, 0, 200))
                     screen.blit(text_num ,pygame.Rect(50*(j + 1) + 20, 50*(i + 1) + 15, 50, 50))
 
         for i in range (len(g_grid_copy)):
