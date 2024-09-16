@@ -1,4 +1,13 @@
-# Z-po-tov-program
+# Zápočtový program
+# ZADÁNÍ
+
+Náplní tvorby zápočtového programu bude vytvoření a zpracování algoritmu pro generování Sudoku tabulky. Součástí práce bude tvorba orientační stupnice obtížnosti, díky které bude uživatel moci zvolit náročnost generovaného zadání. Stupnice obtížnosti a její implementace bude popsána v popisu algoritmu, tedy v technické části práce.
+
+Program vygeneruje zadání Sudoku, tak aby mělo pouze jedno možné řešení. Zadání musí být korektní vzhledem k pravidlům hry Sudoku.
+
+Následně program umožní hrát samotnou hru Sudoku s vygenerovaným zadáním. To zahrnuje vytvoření možnosti vložení vlastního řešení a vyhodnocení jeho správnosti.
+
+Součástí práce také bude vhodné grafické zpracování Sudoku tabulky a ovládacích prvků hry. Ovládání hry by mělo být zpracováno tak, že bude uživatelsky příjemné a bude vyhovovat potřebám pro standartní průběh hry.
 
 
 # TECHNICKÁ ČÁST
