@@ -8,17 +8,17 @@
 *Algoritmus pro řešení Sudoku*
 
 K vyřešení Sudoku použijeme algoritmus prohledávání do hloubky (tedy DFS – algoritmus) a s tím související heuristiku. 
-Pro určování, zda je hodnota pro dané políčko vhodná (podle pravidel Sudoku), v konstantním čase si vytvoříme tabulku, kde pro každé políčko udržujeme seznam délky 10, kde budeme označovat, zda hodnotu indexu v seznamu lze do políčka korektně vložit. Seznamy postupně vyplníme hodnotami True (hodnotu indexu můžeme do políčka vložit) a False (hodnotu indexu již pro toto políčko nelze použít). Hodnota na indexu 0 bude libovolná, jelikož pracujeme s hodnotami 1 až 9.
+Pro určování, zda je hodnota pro dané políčko vhodná (podle pravidel Sudoku), v konstantním čase si vytvoříme tabulku, kde pro každé políčko udržujeme seznam délky 10, kde budeme označovat, zda hodnotu indexu v seznamu lze do políčka korektně vložit. Seznamy postupně vyplníme hodnotami *True* (hodnotu indexu můžeme do políčka vložit) a *False* (hodnotu indexu již pro toto políčko nelze použít). Hodnota na indexu 0 bude libovolná, jelikož pracujeme s hodnotami 1 až 9.
 
-Dále si vytvoříme tabulku všech políček, kde pro každé políčko označíme, zde je prázdné (True/False) a kolik existuje hodnot, které lze do políčka vložit. (Iniciace těchto tabulek je snadná, jelikož algoritmus začíná s prázdnou Sudoku tabulkou.) Tyto hodnoty využijeme při implementaci heuristiky, která spočívá v následujícím. Při vybírání prázdných políček si vybere vždy to, které má nejmenší počet možných hodnot, které do něj můžeme vložit.
+Dále si vytvoříme tabulku všech políček, kde pro každé políčko označíme, zde je prázdné (*True*/*False*) a kolik existuje hodnot, které lze do políčka vložit. (Iniciace těchto tabulek je snadná, jelikož algoritmus začíná s prázdnou Sudoku tabulkou.) Tyto hodnoty využijeme při implementaci heuristiky, která spočívá v následujícím. Při vybírání prázdných políček si vybere vždy to, které má nejmenší počet možných hodnot, které do něj můžeme vložit.
 
 Při řešení Sudoku si tedy vždy vybereme políčko s nejmenším počtem možných hodnot. Nyní postupně pro každou hodnotu 1-9 určíme, zda je pro toto políčko vhodná pomocí vytvořené tabulky. Pokud narazíme na vhodnou hodnotu, vložíme jí do prázdné políčka. 
 
-Pokud je po tomto kroku tabulka plně zaplněna (udržujeme si proměnnou s počtem volných políček), pak pokud jsme měli nalézt pouze jedno řešení, tak algoritmus skončí (jako funkce vrací hodnotu True). Pokud jsme měli nalézt více řešení, tak zvýšíme hodnotu počítadla počtu nalezených řešení o jedna a porovnáme se zadaným počtem řešení. Pokud se hodnoty rovnají, algoritmus skončí (jako funkce vrací hodnotu True), jinak pokračuje.
+Pokud je po tomto kroku tabulka plně zaplněna (udržujeme si proměnnou s počtem volných políček), pak pokud jsme měli nalézt pouze jedno řešení, tak algoritmus skončí (jako funkce vrací hodnotu *True*). Pokud jsme měli nalézt více řešení, tak zvýšíme hodnotu počítadla počtu nalezených řešení o jedna a porovnáme se zadaným počtem řešení. Pokud se hodnoty rovnají, algoritmus skončí (jako funkce vrací hodnotu *True*), jinak pokračuje.
 
-Jestliže tabulka není plně zaplněna, tak rekurzivně voláme funkci pro řešení Sudoku na tabulku s vyplněným políčkem. Upravíme také hodnoty v tabulce možných hodnot. Pokud volaná funkce vrátí hodnotu True, tak jsme již hotovy, tedy nalezli jsme řešení (jako funkce také vracíme hodnotu True pro vynoření z rekurze). Jinak upravované políčko necháme prázdné a upravíme tabulku možných hodnot. Upravíme i tabulku pro určování prázdných políček.
+Jestliže tabulka není plně zaplněna, tak rekurzivně voláme funkci pro řešení Sudoku na tabulku s vyplněným políčkem. Upravíme také hodnoty v tabulce možných hodnot. Pokud volaná funkce vrátí hodnotu *True*, tak jsme již hotovy, tedy nalezli jsme řešení (jako funkce také vracíme hodnotu *True* pro vynoření z rekurze). Jinak upravované políčko necháme prázdné a upravíme tabulku možných hodnot. Upravíme i tabulku pro určování prázdných políček.
 
-Pokud jsme nenašli zadaný počet řešení po vyzkoušení všech možností, vracíme hodnotu False, jelikož jsme již do tohoto políčka zkusili vložit veškeré vhodné hodnoty.
+Pokud jsme nenašli zadaný počet řešení po vyzkoušení všech možností, vracíme hodnotu *False*, jelikož jsme již do tohoto políčka zkusili vložit veškeré vhodné hodnoty.
 
 Pokud jsme našli daný počet řešení, pak je nyní tabulka jedním z nich. Pokud jsme nenašli daný počet řešení, tak je tabulka v původním stavu.
 
@@ -74,6 +74,28 @@ Jestliže uživatel stiskne tlačítko „backspace“, vložíme bílý čtvere
 
 Když uživatel klikne levým tlačítkem myši na tlačítko pro určení správnosti řešení, tak pokud je tabulka plná (tedy při průchodu tabulkou jsme nenarazili na prázdné pole), tak ověříme, zda se rovná tabulka s řešením z algoritmu generování Sudoku tabulky a aktuální tabulka upravená uživatelem. Pokud se rovnají hodnoty na všech pozicích, potom uživateli gratulujeme ke zdárnému vyřešení Sudoku. Jestliže se hodnoty nerovnají, nabídneme možnost pokračovat, nebo Sudoku začít řešit od začátku.
 
+
+# UŽIVATELSKÁ ČÁST
+## NÁVOD PRO UŽIVATELE
+### Zadání míry obtížnosti
+
+Po spuštění programu se objeví text “CHOOSE DIFFICULTY (1-5): “. Za tímto textem napište číslo od 1 do 5 a zmáčkněte klávesu Enter. Touto číslicí si zvolíte úroveň obtížnosti vygenerované tabulky, kde platí, že 1 je nejlehčí (začátečník) a 5 je nejtěžší (profesionál). 
+
+### Hra
+
+Nyní se otevře nové okno se Sudoku tabulkou a tlačítkem “CHECK“. 
+
+Pokud chcete *opustit hru*, klikněte na červený křížek v pravém horním rohu.
+
+Pokud chcete *vložit číslo* do Sudoku tabulky, tak klikněte levým tlačítkem myši na pole, kam chcete číslo vložit (to lze udělat, i pokud jste tam již nějaké číslo vložili). Následně na klávesnici stiskněte klávesu s číslem, které chcete vložit. Zadaná čísla v tabulce nelze nijak měnit.
+
+Pokud chcete *vymazat hodnotu* v tabulce, tak opět klikněte levým tlačítkem myši na pole, kde chcete číslo smazat, a zmáčkněte klávesu Backspace.
+
+### Kontrola řešení
+
+Pokud chcete *zkontrolovat vaše řešení*, tak klikněte levým tlačítkem myši na tlačítko “CHECK“. Upozorňujeme, že tabulka musí být plně vyplněná, jinak se řešení nezkontroluje.
+
+Pokud bylo vaše řešení vyhodnoceno jako chybné, tak můžete levým tlačítkem myši kliknout na tlačítko “RESUME“, které vám umožní *dále upravovat vaše řešení*, nebo můžete levým tlačítkem myši kliknout na tlačítko “TRY AGAIN“, které vám umožní začít *vyplňovat tabulku od začátku* (tedy smaže vaše dosavadní řešení).
 
 
 
